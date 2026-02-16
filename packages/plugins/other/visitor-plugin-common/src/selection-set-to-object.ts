@@ -403,7 +403,7 @@ export class SelectionSetToObject<Config extends ParsedDocumentsConfig = ParsedD
             const { fields: incrementalFields, dependentTypes: incrementalDependentTypes } = this.buildSelectionSet(
               schemaType,
               [incrementalNode],
-              { unsetTypes: true, parentFieldName: parentName }
+              { unsetTypes: true, parentFieldName: parentName, isDeferred: true }
             );
             const incrementalSet = this.selectionSetStringFromFields(incrementalFields);
             prev[typeName].push(incrementalSet);
@@ -414,13 +414,13 @@ export class SelectionSetToObject<Config extends ParsedDocumentsConfig = ParsedD
           const { fields: initialFields, dependentTypes: initialDependentTypes } = this.buildSelectionSet(
             schemaType,
             [incrementalNode],
-            { parentFieldName: parentName }
+            { parentFieldName: parentName, isDeferred: true }
           );
 
           const { fields: subsequentFields, dependentTypes: subsequentDependentTypes } = this.buildSelectionSet(
             schemaType,
             [incrementalNode],
-            { unsetTypes: true, parentFieldName: parentName }
+            { unsetTypes: true, parentFieldName: parentName, isDeferred: true }
           );
 
           const initialSet = this.selectionSetStringFromFields(initialFields);
@@ -528,7 +528,7 @@ export class SelectionSetToObject<Config extends ParsedDocumentsConfig = ParsedD
   protected buildSelectionSet(
     parentSchemaType: GraphQLObjectType,
     selectionNodes: Array<SelectionNode | FragmentSpreadUsage | DirectiveNode>,
-    options: { unsetTypes?: boolean; parentFieldName?: string }
+    options: { unsetTypes?: boolean; parentFieldName?: string; isDeferred?: boolean }
   ) {
     const primitiveFields = new Map<string, FieldNode>();
     const primitiveAliasFields = new Map<string, FieldNode>();
@@ -660,8 +660,10 @@ export class SelectionSetToObject<Config extends ParsedDocumentsConfig = ParsedD
       linkFieldsInterfaces.push(...selectionSetObjects.dependentTypes);
       const isConditional = hasConditionalDirectives(field) || inlineFragmentConditional;
       const isOptional = options.unsetTypes;
-      // When a field is in a deferred fragment (isOptional), it should be nullable even if the schema type is non-null
-      const typeForWrapping = isOptional && isNonNullType(selectedFieldType)
+      const isDeferred = options.isDeferred;
+      // When a field is in a deferred fragment, it should be nullable even if the schema type is non-null
+      // This applies to both the initial state (isDeferred) and the unset state (isOptional)
+      const typeForWrapping = (isDeferred || isOptional) && isNonNullType(selectedFieldType)
         ? removeNonNullWrapper(selectedFieldType)
         : selectedFieldType;
       linkFields.push({

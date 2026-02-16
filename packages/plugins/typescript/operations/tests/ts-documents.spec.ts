@@ -6656,7 +6656,7 @@ function test(q: GetEntityBrandDataQuery): void {
             }
           } & ({ __typename?: 'User', email: string }
               | { __typename?: 'User', email?: never })
-            & ({ __typename?: 'User', address: { __typename?: 'Address', street1: string } }
+            & ({ __typename?: 'User', address: { __typename?: 'Address', street1: string } | null }
               | { __typename?: 'User', address?: never })
             & ({ __typename?: 'User', widgetCount: number, widgetPreference: string }
               | { __typename?: 'User', widgetCount?: never, widgetPreference?: never })
@@ -6778,16 +6778,16 @@ function test(q: GetEntityBrandDataQuery): void {
             & MakeEmpty<User, 'email'>
           )) & ((
             { __typename?: 'User' }
-            & { address: (
+            & { address: Maybe<(
               { __typename?: 'Address' }
               & Pick<Address, 'street1'>
-            ) }
+            )> }
           ) | (
             { __typename?: 'User' }
-            & { address?: (
+            & { address?: Maybe<(
               { __typename?: 'Address' }
               & Pick<Address, 'street1'>
-            ) }
+            )> }
           )) & ((
             { __typename?: 'User' }
             & Pick<User, 'widgetCount'>
@@ -6917,16 +6917,16 @@ function test(q: GetEntityBrandDataQuery): void {
             & MakeEmpty<User, 'email'>
           )) & ((
             { __typename?: 'User' }
-            & { address: (
+            & { address: Maybe<(
               { __typename?: 'Address' }
               & Pick<Address, 'street1'>
-            ) }
+            )> }
           ) | (
             { __typename?: 'User' }
-            & { address?: (
+            & { address?: Maybe<(
               { __typename?: 'Address' }
               & Pick<Address, 'street1'>
-            ) }
+            )> }
           )) & ((
             { __typename?: 'User' }
             & Pick<User, 'widgetName' | 'widgetCount'>
@@ -7133,7 +7133,7 @@ function test(q: GetEntityBrandDataQuery): void {
             employment: { __typename?: 'Employment', title: string }
           } & ({ __typename?: 'User', email: string }
               | { __typename?: 'User', email?: never })
-            & ({ __typename?: 'User', address: { __typename?: 'Address', street1: string | 'specialType' } }
+            & ({ __typename?: 'User', address: { __typename?: 'Address', street1: string | 'specialType' } | 'specialType' }
               | { __typename?: 'User', address?: never })
             & ({ __typename?: 'User', widgetName: string, widgetCount: number }
               | { __typename?: 'User', widgetName?: never, widgetCount?: never })
