@@ -1,5 +1,5 @@
 import { createHash } from 'crypto';
-import { getBaseType } from '@graphql-codegen/plugin-helpers';
+import { getBaseType, removeNonNullWrapper } from '@graphql-codegen/plugin-helpers';
 import { getRootTypes } from '@graphql-tools/utils';
 import autoBind from 'auto-bind';
 import {
@@ -660,6 +660,10 @@ export class SelectionSetToObject<Config extends ParsedDocumentsConfig = ParsedD
       linkFieldsInterfaces.push(...selectionSetObjects.dependentTypes);
       const isConditional = hasConditionalDirectives(field) || inlineFragmentConditional;
       const isOptional = options.unsetTypes;
+      // When a field is in a deferred fragment (isOptional), it should be nullable even if the schema type is non-null
+      const typeForWrapping = isOptional && isNonNullType(selectedFieldType)
+        ? removeNonNullWrapper(selectedFieldType)
+        : selectedFieldType;
       linkFields.push({
         alias: field.alias
           ? this._processor.config.formatNamedField(field.alias.value, selectedFieldType, isConditional, isOptional)
@@ -668,7 +672,7 @@ export class SelectionSetToObject<Config extends ParsedDocumentsConfig = ParsedD
         type: realSelectedFieldType.name,
         selectionSet: this._processor.config.wrapTypeWithModifiers(
           selectionSetObjects.mergedTypeString.split(`\n`).join(`\n  `),
-          selectedFieldType
+          typeForWrapping
         ),
       });
     }
