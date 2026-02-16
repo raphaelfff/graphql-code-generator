@@ -1,5 +1,5 @@
 import { createHash } from 'crypto';
-import { getBaseType } from '@graphql-codegen/plugin-helpers';
+import { getBaseType, removeNonNullWrapper } from '@graphql-codegen/plugin-helpers';
 import { getRootTypes } from '@graphql-tools/utils';
 import autoBind from 'auto-bind';
 import {
@@ -403,7 +403,7 @@ export class SelectionSetToObject<Config extends ParsedDocumentsConfig = ParsedD
             const { fields: incrementalFields, dependentTypes: incrementalDependentTypes } = this.buildSelectionSet(
               schemaType,
               [incrementalNode],
-              { unsetTypes: true, parentFieldName: parentName }
+              { unsetTypes: true, parentFieldName: parentName, isDeferred: true }
             );
             const incrementalSet = this.selectionSetStringFromFields(incrementalFields);
             prev[typeName].push(incrementalSet);
@@ -414,13 +414,13 @@ export class SelectionSetToObject<Config extends ParsedDocumentsConfig = ParsedD
           const { fields: initialFields, dependentTypes: initialDependentTypes } = this.buildSelectionSet(
             schemaType,
             [incrementalNode],
-            { parentFieldName: parentName }
+            { parentFieldName: parentName, isDeferred: true }
           );
 
           const { fields: subsequentFields, dependentTypes: subsequentDependentTypes } = this.buildSelectionSet(
             schemaType,
             [incrementalNode],
-            { unsetTypes: true, parentFieldName: parentName }
+            { unsetTypes: true, parentFieldName: parentName, isDeferred: true }
           );
 
           const initialSet = this.selectionSetStringFromFields(initialFields);
@@ -528,7 +528,7 @@ export class SelectionSetToObject<Config extends ParsedDocumentsConfig = ParsedD
   protected buildSelectionSet(
     parentSchemaType: GraphQLObjectType,
     selectionNodes: Array<SelectionNode | FragmentSpreadUsage | DirectiveNode>,
-    options: { unsetTypes?: boolean; parentFieldName?: string }
+    options: { unsetTypes?: boolean; parentFieldName?: string; isDeferred?: boolean }
   ) {
     const primitiveFields = new Map<string, FieldNode>();
     const primitiveAliasFields = new Map<string, FieldNode>();
@@ -660,6 +660,15 @@ export class SelectionSetToObject<Config extends ParsedDocumentsConfig = ParsedD
       linkFieldsInterfaces.push(...selectionSetObjects.dependentTypes);
       const isConditional = hasConditionalDirectives(field) || inlineFragmentConditional;
       const isOptional = options.unsetTypes;
+      const isDeferred = options.isDeferred;
+      // When a field is in a deferred fragment (isDeferred) or marked as unset (isOptional),
+      // it should be nullable even if the schema type is non-null.
+      // For deferred fields, this is per Apollo Client spec - deferred fields may not be
+      // available in the initial response. For unset fields, this represents the alternate
+      // union member where the field is not yet loaded.
+      const typeForWrapping = (isDeferred || isOptional) && isNonNullType(selectedFieldType)
+        ? removeNonNullWrapper(selectedFieldType)
+        : selectedFieldType;
       linkFields.push({
         alias: field.alias
           ? this._processor.config.formatNamedField(field.alias.value, selectedFieldType, isConditional, isOptional)
@@ -668,7 +677,7 @@ export class SelectionSetToObject<Config extends ParsedDocumentsConfig = ParsedD
         type: realSelectedFieldType.name,
         selectionSet: this._processor.config.wrapTypeWithModifiers(
           selectionSetObjects.mergedTypeString.split(`\n`).join(`\n  `),
-          selectedFieldType
+          typeForWrapping
         ),
       });
     }

@@ -96,7 +96,7 @@ export function isFragmentReady<TQuery, TFrag>(
   if (!deferredFields || !fragName) return true;
 
   const fields = deferredFields[fragName] ?? [];
-  return fields.length > 0 && fields.every(field => data && field in data);
+  return fields.length > 0 && fields.every((field: keyof TFrag) => data && field in data);
 }
 `;
   }
@@ -115,7 +115,7 @@ export function isFragmentReady<TQuery, TFrag>(
   const fragName = fragDef?.name?.value;
 
   const fields = (fragName && deferredFields[fragName]) || [];
-  return fields.length > 0 && fields.every(field => data && field in data);
+  return fields.length > 0 && fields.every((field: keyof TFrag) => data && field in data);
 }
 `;
 };
