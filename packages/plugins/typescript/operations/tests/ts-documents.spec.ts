@@ -7030,7 +7030,7 @@ function test(q: GetEntityBrandDataQuery): void {
             employment: { __typename?: 'Employment', title: string }
           } & ({ __typename?: 'User', email: string }
               | { __typename?: 'User', email?: never })
-            & ({ __typename?: 'User', address: { __typename?: 'Address', street1: string } }
+            & ({ __typename?: 'User', address: { __typename?: 'Address', street1: string } | null }
               | { __typename?: 'User', address?: never })
             & ({ __typename?: 'User', widgetCount: number }
               | { __typename?: 'User', widgetCount?: never })
@@ -7248,7 +7248,7 @@ function test(q: GetEntityBrandDataQuery): void {
           name: string,
           phone: { __typename?: 'Phone', home: string }
         } & { ' $fragmentRefs'?: { 'EmploymentFragmentFragment': EmploymentFragmentFragment } }
-      ) & ({ __typename?: 'User', email: string } | { __typename?: 'User', email?: never }) & ({ __typename?: 'User', address: { __typename?: 'Address', street1: string } } | { __typename?: 'User', address?: never }) & (
+      ) & ({ __typename?: 'User', email: string } | { __typename?: 'User', email?: never }) & ({ __typename?: 'User', address: { __typename?: 'Address', street1: string } | null } | { __typename?: 'User', address?: never }) & (
         { __typename?: 'User' }
         & { ' $fragmentRefs'?: { 'WidgetFragmentFragment': Incremental<WidgetFragmentFragment> } }
       ) & (
