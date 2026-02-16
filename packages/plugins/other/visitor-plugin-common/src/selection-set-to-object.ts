@@ -661,8 +661,11 @@ export class SelectionSetToObject<Config extends ParsedDocumentsConfig = ParsedD
       const isConditional = hasConditionalDirectives(field) || inlineFragmentConditional;
       const isOptional = options.unsetTypes;
       const isDeferred = options.isDeferred;
-      // When a field is in a deferred fragment, it should be nullable even if the schema type is non-null
-      // This applies to both the initial state (isDeferred) and the unset state (isOptional)
+      // When a field is in a deferred fragment (isDeferred) or marked as unset (isOptional),
+      // it should be nullable even if the schema type is non-null.
+      // For deferred fields, this is per Apollo Client spec - deferred fields may not be
+      // available in the initial response. For unset fields, this represents the alternate
+      // union member where the field is not yet loaded.
       const typeForWrapping = (isDeferred || isOptional) && isNonNullType(selectedFieldType)
         ? removeNonNullWrapper(selectedFieldType)
         : selectedFieldType;
